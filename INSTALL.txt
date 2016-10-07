@@ -1,0 +1,341 @@
+### Vivado project
+
+$ cd ~/work/embedded_linux/vivado
+$ vivado -nolog -nojournal -mode batch -source embedded_linux.tcl
+
+### Compile FSBL
+
+$ vivado -nolog -nojournal -mode batch -source hwdef.tcl
+$ hsi -nolog -nojournal -mode batch -source fsbl.tcl
+
+### Generate Device Tree
+
+$ hsi -nolog -nojournal -mode batch -source devicetree.tcl
+
+
+### Development packages install
+
+$ sudo apt-get install openssh-server vim wget unzip
+$ sudo apt-get install build-essential gcc-arm-linux-gnueabihf device-tree-compiler u-boot-tools libncurses5-dev libssl-dev
+$ sudo apt-get install parted coreutils qemu qemu-user-static
+
+### U-BOOT compile
+
+$ cd ~/work/embedded_linux
+$ mkdir -p dl
+$ wget https://github.com/Xilinx/u-boot-xlnx/archive/xilinx-v2015.4.tar.gz -O dl/u-boot-xlnx-xilinx-v2015.4.tar.gz
+$ cd u-boot
+$ tar xvzf ../dl/u-boot-xlnx-xilinx-v2015.4.tar.gz
+$ cd u-boot-xlnx-xilinx-v2015.4
+$ vi board/xilinx/zynq/board.c
+
+ int board_late_init(void)
+ {
++   #if defined(CONFIG_ZYNQ_GEM_EEPROM_ADDR) && \
++       defined(CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET)
++           unsigned char enetaddr[6];
++
++           if (eeprom_read(CONFIG_ZYNQ_GEM_EEPROM_ADDR,
++                           CONFIG_ZYNQ_GEM_I2C_MAC_OFFSET,
++                           enetaddr, ARRAY_SIZE(enetaddr)))
++                   printf("I2C EEPROM MAC address read failed\n");
++           else
++                   eth_setenv_enetaddr("ethaddr", enetaddr);
++   #endif
++
+    switch ((zynq_slcr_get_boot_mode()) & ZYNQ_BM_MASK) {
+    case ZYNQ_BM_QSPI:
+
+$ vi common/main.c
+
+    if (cli_process_fdt(&s))
+        cli_secure_boot_cmd(s);
+
++	setenv("fdt_high", "0x1E000000");
++	setenv("sdboot", "echo Importing environment from SD... && mmcinfo && fatload mmc 0 0x2000000 uEnv.txt && env import -t 0x2000000 ${filesize} && boot");
+
+    autoboot_command(s);
+
+
+$ cp ../zynq-zyboc.dts arch/arm/dts
+$ cp ../zynq_zyboc.h include/configs
+$ cp ../zynq_zyboc_defconfig configs
+
+$ vi arch/arm/dts/Makefile
+
+dtb-$(CONFIG_ARCH_ZYNQ) += zynq-zc702.dtb \
+    zynq-zc706.dtb \
+    zynq-zed.dtb \
+    zynq-zybo.dtb \
+    zynq-microzed.dtb \
+    zynq-cc108.dtb \
+    zynq-afx-nand.dtb \
+    zynq-afx-nor.dtb \
+    zynq-afx-qspi.dtb \
+    zynq-cse-nand.dtb \
+    zynq-cse-nor.dtb \
+    zynq-cse-qspi.dtb \
+    zynq-picozed.dtb \
+    zynq-zc770-xm010.dtb \
+    zynq-zc770-xm011.dtb \
+    zynq-zc770-xm012.dtb \
+-   zynq-zc770-xm013.dtb
++   zynq-zc770-xm013.dtb \
++   zynq-zyboc.dtb
+
+$ vi arch/arm/mach-zynq/Kconfig
+
+config TARGET_ZYNQ_ZYBO
+    bool "Zynq Zybo Board"
+    select ZYNQ_CUSTOM_INIT
+
+config TARGET_ZYNQ_AFX
+    bool "Zynq AFX Board"
+    select ZYNQ_CUSTOM_INIT
+
+config TARGET_ZYNQ_CSE
+    bool "Zynq CSE Board"
+    select ZYNQ_CUSTOM_INIT
+
+config TARGET_ZYNQ_CC108
+    bool "Zynq CC108 Board"
+    select ZYNQ_CUSTOM_INIT
+
++config TARGET_ZYNQ_ZYBOC
++    bool "Zynq Zyboc Board"
++    select ZYNQ_CUSTOM_INIT
+
+
+config SYS_CONFIG_NAME
+    default "zynq_zed" if TARGET_ZYNQ_ZED
+    default "zynq_microzed" if TARGET_ZYNQ_MICROZED
+    default "zynq_picozed" if TARGET_ZYNQ_PICOZED
+    default "zynq_zc70x" if TARGET_ZYNQ_ZC702 || TARGET_ZYNQ_ZC706 \
+                    || TARGET_ZYNQ_ZC70X
+    default "zynq_zc770" if TARGET_ZYNQ_ZC770
+    default "zynq_zybo" if TARGET_ZYNQ_ZYBO
+    default "zynq_cse" if TARGET_ZYNQ_CSE
+    default "zynq_afx" if TARGET_ZYNQ_AFX
+    default "zynq_cc108" if TARGET_ZYNQ_CC108
++   default "zynq_zyboc" if TARGET_ZYNQ_ZYBOC
+
+endif
+
+$ make arch=ARM zynq_zyboc_defconfig
+$ make arch=ARM CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" all
+$ cp u-boot ~/work/embedded_linux/vivado/u-boot.elf
+
+### Device Tree compile
+
+$ cd ~/work/embedded_linux
+$ cp vivado/embedded_linux/embedded_linux.tree/system.dts .
+$ vi system.dts
+
+&clkc {
+    fclk-enable = <0x0>;
+    ps-clk-frequency = <50000000>;
+};
+
++&gem0 {
++    phy-handle = <&phy0>;
++    ps7_ethernet_0_mdio: mdio {
++        #address-cells = <0x1>;
++        #size-cells = <0x0>;
++        phy0: phy@0 {
++            compatible = "realtek,RTL8211E";
++            device_type = "ethernet-phy";
++            reg = <0>;
++        };
++    };
++};
++&i2c0 {
++    eeprom@50 {
++        /* Microchip 24AA02E48 */
++        compatible = "microchip,24c02";
++        reg = <0x50>;
++        pagesize = <8>;
++    };
++};
++/ {
++    usb_phy0: phy0 {
++        compatible = "ulpi-phy";
++        #phy-cells = <0>;
++        reg = <0xe0002000 0x1000>;
++        view-port = <0x0170>;
++        drv-vbus;
++    };
++};
++&usb0 {
++    usb-phy = <&usb_phy0>;
++};
+
+$ dtc -O dtb -I dts -i vivado/embedded_linux/embedded_linux.tree/ -o devicetree.dtb system.dts
+
+### Linux Kernel compile
+
+$ cd ~/work/embedded_linux
+$ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2015.4.01.tar.gz -O dl/linux-xlnx-xilinx-v2015.4.01.tar.gz
+$ cd kernel
+$ tar xvzf ../dl/linux-xlnx-xilinx-v2015.4.01.tar.gz
+$ cd linux-xlnx-xilinx-v2015.4.01
+$ cp -r ../drivers/rtl8192cu drivers/net/wireless/
+$ vi drivers/net/wireless/Kconfig
+
+source "drivers/net/wireless/mwifiex/Kconfig"
+source "drivers/net/wireless/cw1200/Kconfig"
+source "drivers/net/wireless/rsi/Kconfig"
++source "drivers/net/wireless/rtl8192cu/Kconfig"
+
+endif # WLAN
+
+$ vi drivers/net/wireless/Makefile
+
+obj-$(CONFIG_CW1200)    += cw1200/
+obj-$(CONFIG_RSI_91X)   += rsi/
++
++obj-$(CONFIG_RTL8192CU)    += rtl8192cu/
+
+$ make mrproper
+$ make ARCH=arm xilinx_zynq_defconfig
+$ make ARCH=arm menuconfig
+
+Networking support -> Wireless
+<*> cfg80211 - wireless configuration API ===> CONFIG_CFG80211=y
+<*> Generic IEEE 802.11 Networking Stack (mac80211) ===> CONFIG_MAC80211=y
+
+Device Drivers -> Device Tree and Open Firmware support
+[*] Device Tree overlays  ===> CONFIG_OF_OVERLAY=y
+
+Device Drivers -> Network device support -> PHY Device support and infrastructure
+<*> Drivers for Realtek PHYs ===> CONFIG_REALTEK_PHY=y
+
+Device Drivers -> Network device support -> Wireless LAN
+<> Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=n
+<*> Realtek 8192C USB WiFi ===> CONFIG_RTL8192CU=y
+
+Device Drivers -> SPI support
+<*> User mode SPI device driver support ===> CONFIG_SPI_SPIDEV=y
+
+Device Drivers -> GPIO support
+<*> Xilinx GPIO support ===> CONFIG_GPIO_XILINX=y
+
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
+$ cp arch/arm/boot/uImage ../..
+
+### Boot.bin build
+
+$ cd ~/work/embedded_linux/vivado
+$ tclsh bootbin.tcl
+$ cp boot.bin ..
+
+### SD Card Image(only Root File System) build
+
+$ cd ~/work/embedded_linux/vivado
+$ sudo sh ./image.sh
+$ sudo dd if=img/ubuntu_armhf_16.04.imag of=/dev/sdc bs=4M
+$ sudo sync
+
+### Post install
+
+>>> console login
+# groupadd -g 1000 hokim
+# groupadd -g 1001 admin
+# useradd -u 1000 -g 1000 -G adm,dialout,cdrom,audio,dip,video,plugdev,admin -d /home/hokim -m -s /bin/bash hokim
+# passwd hokim
+
+# vi /etc/network/interfaces.d/eth0
+
+allow-hotplug eth0
+iface eth0 inet static
+address 192.168.10.10
+netmask 255.255.255.0
+
+# halt
+<<< console logout
+
+$ scp wlan0 wpa_supplicant.conf hokim@192.168.10.10:.
+
+>>> ssh login
+$ ssh hokim@192.168.10.10
+
+$ sudo vi /etc/hostname
+-localhost.localdomain
++zybo
+
+$ sudo vi /etc/hosts
+
+127.0.0.1       localhost
+127.0.1.1       zybo
+
+# The following lines are desirable for IPv6 capable hosts
+::1             ip6-localhost ip6-loopback
+fe00::0         ip6-localnet
+ff00::0         ip6-mcastprefix
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+
+$ ls /sys/class/net
+
+enx74da38422193  eth0  lo
+
+$ ifconfig enx74da38422193 
+
+enx74da38422193 Link encap:Ethernet  HWaddr 74:da:38:42:21:93
+          UP BROADCAST MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+$ sudo vi /etc/udev/rules.d/10-network.rules
+
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="74:da:38:42:21:93", NAME="wlan0"
+
+$ sudo mv wlan0 /etc/network/interfaces.d/
+$ sudo mv wpa_supplicant.conf /etc/
+$ sudo halt
+<<< ssh logout
+
+### How to update SD Car Image (Example)
+
+$ fdisk -l img/ubuntu_armhf_16.04.img
+
+Disk img/ubuntu-core_armhf_16.04.img: 3.4 GiB, 3670016000 bytes, 7168000 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xa9fa50e3
+
+Device                           Boot  Start     End Sectors  Size Id Type
+img/ubuntu-core_armhf_16.04.img1        8192  249855  241664  118M  e W95 FAT16 
+img/ubuntu-core_armhf_16.04.img2      249856 7167999 6918144  3.3G 83 Linux
+
+$ mkdir root
+$ sudo mount -o rw,loop,offset=$(echo '249856*512'|bc) -t auto img/ubuntu-core_armhf_16.04.img root
+
+$ sudo -s
+# cp /etc/resolv.conf root/etc/
+# cp /usr/bin/qemu-arm-static root/usr/bin/
+
+# chroot root
+# apt-get install lubuntu-desktop
+# exit
+
+# rm root/etc/resolv.conf
+# rm root/usr/bin/qemu-arm-static
+# umount root
+# exit
+
+
+### Resize SD filesystem 
+
+>>> ssh login
+$ ssh hokim@192.168.10.10
+$ sudo -s
+# echo -e "d\n2\nw" | fdisk /dev/mmcblk0
+# parted -s /dev/mmcblk0 mkpart primary ext4 128M 100%
+# halt
+<<< ssh logout
+
+$ sudo resize2fs /dev/mmcblk0p2
