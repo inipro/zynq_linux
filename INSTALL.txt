@@ -195,7 +195,6 @@ obj-$(CONFIG_RSI_91X)   += rsi/
 +
 +obj-$(CONFIG_RTL8192CU)    += rtl8192cu/
 
-$ make mrproper
 $ make ARCH=arm xilinx_zynq_defconfig
 $ make ARCH=arm menuconfig
 
