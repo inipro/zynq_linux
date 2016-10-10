@@ -229,7 +229,7 @@ $ cp boot.bin ..
 
 ### SD Card Image(only Root File System) build
 
-$ cd ~/work/embedded_linux/vivado
+$ cd ~/work/embedded_linux
 $ sudo sh ./image.sh
 $ sudo dd if=img/ubuntu_armhf_16.04.imag of=/dev/sdc bs=4M
 $ sudo sync
@@ -277,21 +277,27 @@ $ ls /sys/class/net
 
 enx74da38422193  eth0  lo
 
-$ ifconfig enx74da38422193 
+$ sudo vi /etc/network/interfaces.d/enx74da38422193
 
-enx74da38422193 Link encap:Ethernet  HWaddr 74:da:38:42:21:93
-          UP BROADCAST MULTICAST  MTU:1500  Metric:1
-          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000
-          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+allow-hotplug enx74da38422193
+iface enx74da38422193 inet dhcp
+        pre-up wpa_supplicant -B -D wext -i enx74da38422193 -c /etc/wpa_supplicant.conf
+        post-down killall -q wpa_supplicant
+        udhcpc_opts -t7 -T3
 
-$ sudo vi /etc/udev/rules.d/10-network.rules
+$ sudo vi /etc/wpa_supplicant.conf 
 
-SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="74:da:38:42:21:93", NAME="wlan0"
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
 
-$ sudo mv wlan0 /etc/network/interfaces.d/
-$ sudo mv wpa_supplicant.conf /etc/
+network={
+	ssid="INIPRO"
+	key_mgmt=WPA-PSK
+	psk="20471047"
+}
+
+
+
 $ sudo halt
 <<< ssh logout
 
