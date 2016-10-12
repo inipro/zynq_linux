@@ -41,7 +41,7 @@ sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial universe.*/d
 sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe.*/deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe/' /etc/apt/sources.list
 apt-get update
 apt-get -y upgrade
-DEBIAN_FRONTEND=noninteractive apt-get -y install vim sudo openssh-server udev usbutils u-boot-tools device-tree-compiler kmod net-tools wpasupplicant parted rfkill lshw wireless-tools gcc g++ cmake git i2c-tools iputils-ping
+DEBIAN_FRONTEND=noninteractive apt-get -y install vim nano sudo openssh-server udev usbutils u-boot-tools device-tree-compiler kmod net-tools wpasupplicant parted rfkill lshw wireless-tools gcc g++ cmake git i2c-tools iputils-ping
 echo "Asia/Seoul" > /etc/timezone
 ln -fs /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 locale-gen "en_US.UTF-8"
