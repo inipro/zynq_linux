@@ -4,7 +4,8 @@ vivado.jou
 *~
 *#
 vivado/embedded_linux/
-.Xil/
+**/.Xil/
+**/build/
 kernel/linux-xlnx-xilinx-v2015.4.01/
 u-boot/u-boot-xlnx-xilinx-v2015.4/
 boot/
@@ -13,8 +14,3 @@ dl/
 img/
 **/.git
 **/.metadata
-u-boot.elf
-boot.bin
-devicetree.dtb
-system.dts
-uImage

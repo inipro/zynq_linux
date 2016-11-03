@@ -242,6 +242,10 @@ $ sudo sync
 # useradd -u 1000 -g 1000 -G adm,dialout,cdrom,audio,dip,video,plugdev,admin -d /home/hokim -m -s /bin/bash hokim
 # passwd hokim
 
+# vi /etc/sudoers
+%admin ALL=(ALL) ALL
++hokim ALL=(ALL) NOPASSWD: ALL
+
 # vi /etc/network/interfaces.d/eth0
 
 allow-hotplug eth0
