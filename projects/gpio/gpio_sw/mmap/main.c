@@ -84,6 +84,9 @@ int main()
 		sleep(1);
 		if (loop_exit == 1) break;
 	}
-
+	munmap((void*)btns, sysconf(_SC_PAGESIZE));
+	munmap((void*)leds, sysconf(_SC_PAGESIZE));
+	munmap((void*)sws, sysconf(_SC_PAGESIZE));
+	close(fd);
 	return 0;
 }
