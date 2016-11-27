@@ -178,23 +178,6 @@ $ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2015.4.01.tar.gz -O 
 $ cd kernel
 $ tar xvzf ../dl/linux-xlnx-xilinx-v2015.4.01.tar.gz
 $ cd linux-xlnx-xilinx-v2015.4.01
-$ cp -r ../drivers/rtl8192cu drivers/net/wireless/
-$ vi drivers/net/wireless/Kconfig
-
-source "drivers/net/wireless/mwifiex/Kconfig"
-source "drivers/net/wireless/cw1200/Kconfig"
-source "drivers/net/wireless/rsi/Kconfig"
-+source "drivers/net/wireless/rtl8192cu/Kconfig"
-
-endif # WLAN
-
-$ vi drivers/net/wireless/Makefile
-
-obj-$(CONFIG_CW1200)    += cw1200/
-obj-$(CONFIG_RSI_91X)   += rsi/
-+
-+obj-$(CONFIG_RTL8192CU)    += rtl8192cu/
-
 $ make ARCH=arm xilinx_zynq_defconfig
 $ make ARCH=arm menuconfig
 
@@ -208,15 +191,28 @@ Device Drivers -> Device Tree and Open Firmware support
 Device Drivers -> Network device support -> PHY Device support and infrastructure
 <*> Drivers for Realtek PHYs ===> CONFIG_REALTEK_PHY=y
 
-Device Drivers -> Network device support -> Wireless LAN
-<> Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=n
-<*> Realtek 8192C USB WiFi ===> CONFIG_RTL8192CU=y
+Device Drivers -> Network device support -> Wireless LAN 
+< > Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=n
+
+Device Drivers
+[*] Staging drivers ===> CONFIG_STAGING
+
+Device Drivers -> Staging drivers
+<*> Realtek RTL8188EU Wireless LAN NIC driver ===> CONFIG_R8188EU
+[*] Realtek RTL8188EU AP mode (NEW) ===> CONFIG_88EU_AP_MODE
 
 Device Drivers -> SPI support
+<*> GPIO-based bitbanging SPI Master ===> CONFIG_SPI_GPIO
 <*> User mode SPI device driver support ===> CONFIG_SPI_SPIDEV=y
 
 Device Drivers -> GPIO support
 <*> Xilinx GPIO support ===> CONFIG_GPIO_XILINX=y
+
+Device Drivers -> I2C support -> I2C Hardware Bus support
+<*> Xilinx I2C Controller ===> CONFIG_I2C_XILINX
+
+Device Drivers -> Character devices -> Serial drivers
+<*> Xilinx uartlite serial port support ===> CONFIG_SERIAL_UARTLITE
 
 $ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
 $ cp arch/arm/boot/uImage ../..
@@ -348,3 +344,40 @@ $ sudo -s
 <<< ssh logout
 
 $ sudo resize2fs /dev/mmcblk0p2
+
+### Make kernel module
+$ cd ~/work/embedded_linux/kernel/linux-xlnx-xilinx-v2015.4.01
+$ scp Module.symvers hokim@192.168.10.10
+
+>> ssh login
+$ ssh hokim@192.168.10.10
+$ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2015.4.01.tar.gz -O linux-xlnx-xilinx-v2015.4.01.tar.gz
+$ tar xvzf linux-xlnx-xilinx-v2015.4.01.tar.gz
+$ cd linux-xlnx-xilinx-v2015.4.01
+$ zcat /proc/config.gz > .config
+$ make oldconfig
+$ make modules_prepare
+$ vi ~/.bashrc
+
++ export KERNELDIR=$HOME/linux-xlnx-xilinx-v2015.4.01
+
+$ cp ../Module.symvers
+$ mkdir ~/modules
+<< ssh logout
+
+$ cd ~/work/embedded_linux/kernel/drivers
+$ scp -r rtl8192cu hokim@192.168.10.10:./modules
+
+>> ssh login
+$ cd modules/rtl8192cu
+$ vi Makefile
+modules:
+-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
++   $(MAKE) -C $(KERNELDIR) M=$(shell pwd)  modules
+
+$ make
+$ sudo mkdir -p /lib/modules/$(uname -r)/drivers
+$ sudo cp 8192cu.ko /lib/modules/$(uname -r)/drivers
+$ sudo depmod -a
+$ sudo reboot
+
