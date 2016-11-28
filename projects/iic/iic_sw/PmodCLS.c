@@ -207,19 +207,8 @@ void CLS_BuildUserDefChar(uint8_t* strUserDef, char* cmdStr) {
 	char elStr[4];
 	//print the bytes from the input array as hex values
 	for(i = 0; i < len; i++){
-		sprintf(elStr, "%2.2X", strUserDef[i]);
-		//concatenate the result with the 0x chars to be able to send it to the LCD
-		strcat(cmdStr, "0x");
-
-		if (strUserDef[i] > 15) {
-			elStr[3] = 0;
-			strcat(cmdStr, elStr + 1);
-		}
-		else {
-			elStr[2] = 0;
-			strcat(cmdStr, elStr);
-		}
-		strcat(cmdStr, ";");
+		sprintf(elStr, "%d;", strUserDef[i]);
+		strcat(cmdStr, elStr);
 	}
 }
 
