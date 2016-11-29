@@ -1,6 +1,6 @@
 # hsi -nolog -nojournal -mode batch -source devicetree.tcl
 
-set project_name iic
+set project_name i2c
 
 set boot_args {console=ttyPS0,115200 root=/dev/mmcblk0p2 ro rootfstype=ext4 earlyprintk rootwait}
 

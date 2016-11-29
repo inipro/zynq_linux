@@ -1,6 +1,6 @@
 # vivado -nolog -nojournal -mode batch -source hwdef.tcl
 
-set project_name iic
+set project_name i2c
 
 open_project $project_name/$project_name.xpr
 

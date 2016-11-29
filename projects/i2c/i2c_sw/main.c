@@ -24,8 +24,8 @@ int main()
 
 	loop_exit = 0;
 
-	CLS_begin("/dev/i2c-1");
-	//CLS_begin("/dev/i2c-2");
+	//CLS_begin("/dev/i2c-1");
+	CLS_begin("/dev/i2c-2");
 
 	CLS_DisplayClear();
 
@@ -35,7 +35,7 @@ int main()
 	CLS_WriteStringAtPos(0, 0, szInfo1);
 	CLS_WriteStringAtPos(1, 0, szInfo2);
 
-	usleep(500000);
+	usleep(1);
 
 	while (1) {
 		CLS_DisplayClear();
@@ -45,7 +45,7 @@ int main()
 		CLS_WriteStringAtPos(0, 0, szInfo1);
 		CLS_WriteStringAtPos(1, 0, szInfo2);
 
-		usleep(500000);
+		sleep(1);
 
 		CLS_DisplayClear();
 
@@ -54,7 +54,7 @@ int main()
 		CLS_WriteStringAtPos(0, 0, szInfo1);
 		CLS_WriteStringAtPos(1, 0, szInfo2);
 
-		usleep(500000);
+		sleep(1);
 
 		if (loop_exit == 1) break;
 

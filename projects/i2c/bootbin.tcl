@@ -1,6 +1,6 @@
 # tclsh bootbin.tcl
 
-set project_name iic
+set project_name i2c
 
 set fileId [open $project_name/boot.bif "w"]
 puts $fileId "img:{\[bootloader\] $project_name/$project_name.fsbl/executable.elf $project_name/$project_name.runs/impl_1/system_wrapper.bit u-boot.elf}"

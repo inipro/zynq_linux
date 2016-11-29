@@ -1,4 +1,4 @@
-#include "iic.h"
+#include "i2c.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -7,46 +7,47 @@
 #include <errno.h>
 #include <linux/i2c-dev.h>
 
-int iic_init(char *fname, uint8_t addr)
+int i2c_init(char *fname, uint8_t addr)
 {
-	int iic_fd;
+	int i2c_fd;
 
-	iic_fd = open(fname, O_RDWR);
+	i2c_fd = open(fname, O_RDWR);
 
-	if (iic_fd < 0) {
+	if (i2c_fd < 0) {
 		printf("Error opening %s. Error: %s\n", fname, strerror(errno));
 		return -1;
 	}
 
-	if (ioctl(iic_fd, I2C_SLAVE_FORCE, addr) < 0) {
+	if (ioctl(i2c_fd, I2C_SLAVE_FORCE, addr) < 0) {
 		printf("Error setting I2C_SLAVE_FORCE. Error: %s\n", strerror(errno));
 		return -1;
 	}
 
-	return iic_fd;
+	return i2c_fd;
 }
 
-int iic_release(int iic_fd)
+int i2c_release(int i2c_fd)
 {
-	close(iic_fd);
+	close(i2c_fd);
 
 	return 0;
 }
 
-int iic_read(int iic_fd, uint8_t *buffer, int bytes)
+int i2c_read(int i2c_fd, uint8_t *buffer, int bytes)
 {
 	int bytes_read;
 
-	bytes_read = read(iic_fd, buffer, bytes);
+	bytes_read = read(i2c_fd, buffer, bytes);
 	
 	return bytes_read;
 }
 
-int iic_write(int iic_fd, uint8_t *buffer, int bytes)
+int i2c_write(int i2c_fd, uint8_t *buffer, int bytes)
 {
 	int bytes_written;
 
-	bytes_written = write(iic_fd, buffer, bytes);
+	bytes_written = write(i2c_fd, buffer, bytes);
 	
 	return bytes_written;
 }
+

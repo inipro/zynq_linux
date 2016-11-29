@@ -1,4 +1,4 @@
-set project_name iic
+set project_name i2c
 set part_name xc7z010clg400-1
 #set ip_dir ip
 set bd_path $project_name/$project_name.srcs/sources_1/bd/system
@@ -13,7 +13,7 @@ create_project -part $part_name $project_name $project_name
 create_bd_design system
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 ps_0
-source iic_preset.tcl
+source i2c_preset.tcl
 set_property -dict [apply_preset IPINST] [get_bd_cells ps_0]
 apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 	make_external {FIXED_IO, DDR}
@@ -46,7 +46,7 @@ make_wrapper -files [get_files $bd_path/system.bd] -top
 
 add_files -norecurse $bd_path/hdl/system_wrapper.v
 
-add_files -norecurse -fileset constrs_1 zybo_iic.xdc
+add_files -norecurse -fileset constrs_1 zybo_i2c.xdc
 
 set_property verilog_define {TOOL_VIVADO} [current_fileset]
 

@@ -37,9 +37,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "iic.h"
+#include "i2c.h"
 
-static int iic_fd;
+static int i2c_fd;
 
 /************************** Function Definitions ************************/
 
@@ -80,16 +80,16 @@ uint8_t CLS_WriteStringAtPos(uint8_t idxRow, uint8_t idxCol, char* strLn) {
 		uint8_t secondDigit 	= idxCol / 10;
 		uint8_t length 			= strlen(strLn);
 		uint8_t lengthToPrint   = length + idxCol;
-		uint8_t stringToSend[]  = {ESC, BRACKET, idxRow + '0', ';', secondDigit + '0', firstDigit + '0', CURSOR_POS_CMD};
+		uint8_t stringToSend[0x27]  = {ESC, BRACKET, idxRow + '0', ';', secondDigit + '0', firstDigit + '0', CURSOR_POS_CMD, 0};
 		if (lengthToPrint > 40) {
 			//truncate the length of the string
 			//if it's greater than the positions number of a line
 			length = 40 - idxCol;
 		}
-		//spi_transfer(spi_fd, stringToSend, NULL, 7);
-		//spi_transfer(spi_fd, strLn, NULL, length);
-		iic_write(iic_fd, stringToSend, 7);
-		iic_write(iic_fd, strLn, length);
+
+		strcat(stringToSend, strLn);
+		//spi_transfer(spi_fd, stringToSend NULL, length+7);
+		i2c_write(i2c_fd, stringToSend, length+7);
 	}
 	return bResult;
 }
@@ -118,17 +118,17 @@ void CLS_CursorModeSet(bool setCursor, bool setBlink) {
 	if (!setCursor)	{
 		//send the command for both display and blink off
 		//spi_transfer(spi_fd, cursorOff, NULL, 4);
-		iic_write(iic_fd, cursorOff, 4);
+		i2c_write(i2c_fd, cursorOff, 4);
 	}
 	else if ((setCursor)&&(!setBlink)) {
 		//send the command for display on and blink off
 		//spi_transfer(spi_fd, cursorOnBlinkOff, NULL, 4);
-		iic_write(iic_fd, cursorOnBlinkOff, 4);
+		i2c_write(i2c_fd, cursorOnBlinkOff, 4);
 	}
 	else {
 		//send the command for display and blink on
 		//spi_transfer(spi_fd, cursorBlinkOn, NULL, 4);
-		iic_write(iic_fd, cursorBlinkOn, 4);
+		i2c_write(i2c_fd, cursorBlinkOn, 4);
 	}
 }
 
@@ -151,7 +151,7 @@ void CLS_DisplayClear() {
 	uint8_t dispClr[] = {ESC, BRACKET, '0', DISP_CLR_CMD};
 	//clear the display and returns the cursor home
 	//spi_transfer(spi_fd, dispClr, NULL, 4);
-	iic_write(iic_fd, dispClr, 4);
+	i2c_write(i2c_fd, dispClr, 4);
 }
 
 /* --------------------------------------------------------------------*/
@@ -175,12 +175,12 @@ void CLS_DisplayMode(bool charNumber){
 	if (charNumber){
 		//wrap line at 16 characters
 		//spi_transfer(spi_fd, dispMode16, NULL, 4);
-		iic_write(iic_fd, dispMode16, 4);
+		i2c_write(i2c_fd, dispMode16, 4);
 	}
 	else{
 		//wrap line at 40 characters
 		//spi_transfer(spi_fd, dispMode40, NULL, 4);
-		iic_write(iic_fd, dispMode40, 4);
+		i2c_write(i2c_fd, dispMode40, 4);
 	}
 }
 
@@ -250,7 +250,7 @@ uint8_t CLS_DefineUserChar(uint8_t* strUserDef, uint8_t charPos) {
 		rgcCmd[bLength++] = '3';
 		rgcCmd[bLength++] = PRG_CHAR_CMD;
 		//spi_transfer(spi_fd, rgcCmd, NULL, bLength);
-		iic_write(iic_fd, rgcCmd, bLength);
+		i2c_write(i2c_fd, rgcCmd, bLength);
 		bResult = LCDS_ERR_SUCCESS;
 	}
 	else {
@@ -276,7 +276,7 @@ uint8_t CLS_DefineUserChar(uint8_t* strUserDef, uint8_t charPos) {
 -----------------------------------------------------------------------*/
 void CLS_begin(char *devname)
 {
-	iic_fd = iic_init(devname, 0x48);
+	i2c_fd = i2c_init(devname, 0x48);
 }
 
 /*---------------------------------------------------------------------*/
@@ -295,5 +295,5 @@ void CLS_begin(char *devname)
 **		Stops the device
 -----------------------------------------------------------------------*/
 void CLS_end(){
-	iic_release(iic_fd);
+	i2c_release(i2c_fd);
 }

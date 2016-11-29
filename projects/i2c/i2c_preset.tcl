@@ -1,5 +1,5 @@
 proc getPresetInfo {} {
-  return [dict create name {iic} description {iic}  vlnv xilinx.com:ip:processing_system7:5.5 display_name {iic} ]
+  return [dict create name {i2c} description {i2c}  vlnv xilinx.com:ip:processing_system7:5.5 display_name {i2c} ]
 }
 
 proc validate_preset {IPINST} { return true }

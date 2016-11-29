@@ -80,14 +80,14 @@ uint8_t CLS_WriteStringAtPos(uint8_t idxRow, uint8_t idxCol, char* strLn) {
 		uint8_t secondDigit 	= idxCol / 10;
 		uint8_t length 			= strlen(strLn);
 		uint8_t lengthToPrint   = length + idxCol;
-		uint8_t stringToSend[]  = {ESC, BRACKET, idxRow + '0', ';', secondDigit + '0', firstDigit + '0', CURSOR_POS_CMD};
+		uint8_t stringToSend[0x27]  = {ESC, BRACKET, idxRow + '0', ';', secondDigit + '0', firstDigit + '0', CURSOR_POS_CMD, 0};
 		if (lengthToPrint > 40) {
 			//truncate the length of the string
 			//if it's greater than the positions number of a line
 			length = 40 - idxCol;
 		}
-		spi_transfer(spi_fd, stringToSend, NULL, 7);
-		spi_transfer(spi_fd, strLn, NULL, length);
+		strcat(stringToSend, strLn);
+		spi_transfer(spi_fd, stringToSend, NULL, length+7);
 	}
 	return bResult;
 }

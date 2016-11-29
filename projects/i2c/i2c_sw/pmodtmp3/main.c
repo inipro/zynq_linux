@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include "iic.h"
+#include "i2c.h"
 
 #define TMP3_ADDR			0x48
 #define TMP3_REG_TEMP		0x0	
@@ -16,9 +16,9 @@ void sig_handler(int signo)
 
 int main()
 {
-	int iic_fd;
+	int i2c_fd;
 	uint8_t cmd;
-	uint8_t dat[2];
+	uint8_t dat[30];
 	uint16_t _temp;
 	double temp;
 
@@ -29,14 +29,14 @@ int main()
 
 	loop_exit = 0;
 
-	iic_fd = iic_init("/dev/i2c-1", TMP3_ADDR);
-	//iic_fd = iic_init("/dev/i2c-2", TMP3_ADDR);
+	//i2c_fd = i2c_init("/dev/i2c-1", TMP3_ADDR);
+	i2c_fd = i2c_init("/dev/i2c-2", TMP3_ADDR);
 
 	cmd = TMP3_REG_TEMP;
 
 	while (1) {
-		iic_write(iic_fd, &cmd, 1);
-		iic_read(iic_fd, dat, 2);
+		i2c_write(i2c_fd, &cmd, 1);
+		i2c_read(i2c_fd, dat, 2);
 
 		_temp = dat[1] | (dat[0] << 8);
 		if (dat[0] & 0x80 == 0)
@@ -50,6 +50,6 @@ int main()
 		if (loop_exit == 1) break;
 	}
 
-	iic_release(iic_fd);
+	i2c_release(i2c_fd);
 
 }
