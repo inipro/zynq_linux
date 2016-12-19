@@ -12,12 +12,12 @@ file delete -force $hard_path $tree_path
 file mkdir $hard_path
 file copy -force $project_name/$project_name.hwdef $hard_path/$project_name.hdf
 
-set_repo_path $::env(HOME)/work/device-tree-xlnx-xilinx-v2015.4
+set_repo_path $::env(HOME)/work/device-tree-xlnx-xilinx-v2016.3
 
 open_hw_design $hard_path/$project_name.hdf
 create_sw_design -proc ps7_cortexa9_0 -os device_tree devicetree
 
-set_property CONFIG.kernel_version {2015.4} [get_os]
+set_property CONFIG.kernel_version {2016.3} [get_os]
 set_property CONFIG.bootargs $boot_args [get_os]
 
 generate_bsp -dir $tree_path

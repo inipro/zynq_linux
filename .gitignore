@@ -6,8 +6,8 @@ vivado.jou
 vivado/embedded_linux/
 **/.Xil/
 **/build/
-kernel/linux-xlnx-xilinx-v2015.4.01/
-u-boot/u-boot-xlnx-xilinx-v2015.4/
+kernel/linux-xlnx-xilinx-v2016.3/
+u-boot/u-boot-xlnx-xilinx-v2016.3/
 boot/
 root/
 dl/
