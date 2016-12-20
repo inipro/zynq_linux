@@ -23,10 +23,10 @@ $ sudo apt-get install parted coreutils qemu qemu-user-static
 
 $ cd ~/work/embedded_linux
 $ mkdir -p dl
-$ wget https://github.com/Xilinx/u-boot-xlnx/archive/xilinx-v2016.3.tar.gz -O dl/u-boot-xlnx-xilinx-v2016.3.tar.gz
+$ wget https://github.com/Xilinx/u-boot-xlnx/archive/xilinx-v2016.4.tar.gz -O dl/u-boot-xlnx-xilinx-v2016.4.tar.gz
 $ cd u-boot
-$ tar xvzf ../dl/u-boot-xlnx-xilinx-v2016.3.tar.gz
-$ cd u-boot-xlnx-xilinx-v2016.3
+$ tar xvzf ../dl/u-boot-xlnx-xilinx-v2016.4.tar.gz
+$ cd u-boot-xlnx-xilinx-v2016.4
 
 $ cp ../zynq-zyboc.dts arch/arm/dts
 $ cp ../zynq_zyboc.h include/configs
@@ -70,15 +70,8 @@ $ vi system.dts
 };
 
 +&gem0 {
-+    phy-handle = <&phy0>;
-+    ps7_ethernet_0_mdio: mdio {
-+        #address-cells = <0x1>;
-+        #size-cells = <0x0>;
-+        phy0: phy@0 {
-+            compatible = "realtek,RTL8211E";
-+            device_type = "ethernet-phy";
-+            reg = <0>;
-+        };
++    ethernet-phy@1 {
++        reg = <1>;
 +    };
 +};
 +&i2c0 {
@@ -107,10 +100,10 @@ $ dtc -O dtb -I dts -i vivado/embedded_linux/embedded_linux.tree/ -o devicetree.
 ### Linux Kernel compile
 
 $ cd ~/work/embedded_linux
-$ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2016.3.tar.gz -O dl/linux-xlnx-xilinx-v2016.3.tar.gz
+$ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2016.4.tar.gz -O dl/linux-xlnx-xilinx-v2016.4.tar.gz
 $ cd kernel
-$ tar xvzf ../dl/linux-xlnx-xilinx-v2016.3.tar.gz
-$ cd linux-xlnx-xilinx-v2016.3
+$ tar xvzf ../dl/linux-xlnx-xilinx-v2016.4.tar.gz
+$ cd linux-xlnx-xilinx-v2016.4
 $ make ARCH=arm xilinx_zynq_defconfig
 $ make ARCH=arm menuconfig
 
@@ -122,7 +115,8 @@ Device Drivers -> Device Tree and Open Firmware support
 [*] Device Tree overlays  ===> CONFIG_OF_OVERLAY=y
 
 Device Drivers -> Network device support -> Wireless LAN 
-< > Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=n
+<> Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=y
+
 
 Device Drivers
 [*] Staging drivers ===> CONFIG_STAGING

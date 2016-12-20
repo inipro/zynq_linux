@@ -2,7 +2,7 @@
  * (C) Copyright 2012 Xilinx
  * (C) Copyright 2014 Digilent Inc.
  *
- * Configuration for Zynq Development Board - ZYBO
+ * Configuration for Zynq Development Board - ZYBOC
  * See zynq-common.h for Zynq common configs
  *
  * SPDX-License-Identifier:	GPL-2.0+
