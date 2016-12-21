@@ -71,9 +71,9 @@
 };
 
 &gem0 {
-	ethernet-phy@1 {
-		reg = <1>;
-	};
+    ethernet-phy@1 {
+        reg = <1>;
+    };
 };
 &i2c0 {
     eeprom@50 {
@@ -96,16 +96,16 @@
     usb-phy = <&usb_phy0>;
 };
 / {
-	aliases {
-		serial0 = &uart1;
-		serial1 = &uart0;
-	};
+    aliases {
+        serial0 = &uart1;
+        serial1 = &uart0;
+    };
 };
 &uart0 {
-	port-number = <1>;
+    port-number = <1>;
 };
 &uart1 {
-	port-number = <0>;
+    port-number = <0>;
 };
 &uart_0 {
     port-number = <0>;
