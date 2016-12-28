@@ -138,6 +138,14 @@ Device Drivers -> I2C support -> I2C Hardware Bus support
 Device Drivers -> Character devices -> Serial drivers
 <*> Xilinx uartlite serial port support ===> CONFIG_SERIAL_UARTLITE
 
+Device Drivers -> Multimedia support ===> CONFIG_MEDIA_USB_SUPPORT=y
+[*] Media USB Adapters
+
+Device Drivers -> Multimedia support -> Media USB Adapter
+<*> USB Video Class (UVC) ===> CONFIG_USB_VIDEO_CLASS=y
+[*] UVC input events device support (NEW) ===> CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
+
+
 $ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
 $ cp arch/arm/boot/uImage ../..
 
