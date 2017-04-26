@@ -1,0 +1,95 @@
+$ ssh root@192.168.10.10
+
+# fdisk /dev/mmcblk0
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 1
+First cylinder (1-246240, default 1): Using default value 1
+Last cylinder or +size or +sizeM or +sizeK (1-246240, default 246240): +128M
+
+Command (m for help): t
+Selected partition 1
+Hex code (type L to list codes): e
+Changed system type of partition 1 to e (Win95 FAT16 (LBA))
+
+Command (m for help): p
+Disk /dev/mmcblk0: 7695 MB, 8068792320 bytes, 15759360 sectors
+246240 cylinders, 4 heads, 16 sectors/track
+Units: cylinders of 64 * 512 = 32768 bytes
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+/dev/mmcblk0p1    0,1,1       1023,3,16           16     250047     250032  122M  e Win95 FAT16 (LBA)
+
+Command (m for help): n
+Command action
+   e   extended
+   p   primary partition (1-4)
+p
+Partition number (1-4): 2
+First cylinder (3908-246240, default 3908): Using default value 3908
+Last cylinder or +size or +sizeM or +sizeK (3908-246240, default 246240): Using default value 246240
+
+Command (m for help): p
+Disk /dev/mmcblk0: 7695 MB, 8068792320 bytes, 15759360 sectors
+246240 cylinders, 4 heads, 16 sectors/track
+Units: cylinders of 64 * 512 = 32768 bytes
+
+Device       Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type
+/dev/mmcblk0p1    0,1,1       1023,3,16           16     250047     250032  122M  e Win95 FAT16 (LBA)
+/dev/mmcblk0p2    1023,3,16   1023,3,16       250048   15759359   15509312 7572M 83 Linux
+
+Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table
+
+# reboot
+
+$ ssh root@192.168.10.10
+
+# mkfs.vfat -v /dev/mmcblk0p1
+# mke2fs -T ext4  /dev/mmcblk0p2
+# mount -t ext4 /dev/mmcblk0p2 /mnt
+# exit
+
+$ cd ~/work
+$ mkdir _rootfs
+$ fdisk -l ubuntu-core_armhf_16.04.img
+Disk ubuntu-core_armhf_16.04.img: 3.4 GiB, 3670016000 bytes, 7168000 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x9d79f3c4
+
+Device                       Boot  Start     End Sectors  Size Id Type
+ubuntu-core_armhf_16.04.img1        8192  249855  241664  118M  e W95 FAT16 (LBA
+ubuntu-core_armhf_16.04.img2      249856 7167999 6918144  3.3G 83 Linux
+
+$ sudo mount -o loop,offset=$(echo '249856*512'|bc) -t ext4 ubuntu-core_armhf_16.04.img _rootfs
+$ cd _rootfs
+$ sudo -s
+# tar cvjf - * | ssh root@192.168.10.10 "(cd /mnt; tar xjf - )"
+# exit
+$ cd ..
+$ sudo umount _rootfs
+$ rmdir _rootfs
+
+$ ssh root@192.168.10.10
+
+# umount /mnt
+# mount -t vfat /dev/mmcblk0p1 /mnt
+# exit
+
+$ cd ~/work/embedded_linux
+$ scp uEnv.txt uImage root@192.168.10.10:/mnt
+$ cd ~/work/embedded_linux/vivado
+$ scp boot.bin devicetree.dtb root@192.168.10.10:/mnt
+
+$ ssh root@192.168.10.10
+
+# umount /mnt
+# exit
+

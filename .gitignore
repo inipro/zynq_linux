@@ -12,6 +12,7 @@ boot/
 root/
 dl/
 img/
+ramdisk/
 **/.git
 **/.metadata
 *.pyc

@@ -24,7 +24,16 @@
 #define CONFIG_ZYNQ_PS_CLK_FREQ	50000000UL
 
 #define CONFIG_EXTRA_ENV_SETTINGS   \
+	"kernel_image=uImage\0" \
+	"kernel_load_address=0x2080000\0" \
+	"ramdisk_image=uramdisk.img.gz\0" \
+	"ramdisk_load_address=0x4000000\0"  \
+	"devicetree_image=devicetree.dtb\0" \
+	"devicetree_load_address=0x2000000\0"   \
     "loadbootenv_addr=0x2000000\0" \
+	"kernel_size=0x500000\0"    \
+	"devicetree_size=0x20000\0" \
+	"ramdisk_size=0x5E0000\0"   \
     "bootenv=uEnv.txt\0" \
     "loadbootenv=load mmc 0 ${loadbootenv_addr} ${bootenv}\0" \
     "importbootenv=echo Importing environment from SD ...; " \
@@ -34,7 +43,14 @@
             "then if env run loadbootenv; " \
                 "then env run importbootenv; " \
             "fi; " \
-        "fi; \0"
+        "fi; \0" \
+	"qspiboot=echo Copying Linux from QSPI flash to RAM... && " \
+		"sf probe 0 0 0 && " \
+		"sf read ${kernel_load_address} 0x300000 ${kernel_size} && " \
+		"sf read ${devicetree_load_address} 0x800000 ${devicetree_size} && " \
+		"echo Copying ramdisk... && " \
+		"sf read ${ramdisk_load_address} 0x820000 ${ramdisk_size} && " \
+		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0"
 
 #include <configs/zynq-common.h>
 
