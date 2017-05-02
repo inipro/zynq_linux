@@ -69,11 +69,6 @@ $ vi system.dts
     ps-clk-frequency = <50000000>;
 };
 
-+&gem0 {
-+    ethernet-phy@1 {
-+        reg = <1>;
-+    };
-+};
 +&i2c0 {
 +    eeprom@50 {
 +        /* Microchip 24AA02E48 */
@@ -104,6 +99,8 @@ $ wget https://github.com/Xilinx/linux-xlnx/archive/xilinx-v2016.4.tar.gz -O dl/
 $ cd kernel
 $ tar xvzf ../dl/linux-xlnx-xilinx-v2016.4.tar.gz
 $ cd linux-xlnx-xilinx-v2016.4
+
+<option 1>
 $ make ARCH=arm xilinx_zynq_defconfig
 $ make ARCH=arm menuconfig
 
@@ -116,7 +113,6 @@ Device Drivers -> Device Tree and Open Firmware support
 
 Device Drivers -> Network device support -> Wireless LAN 
 <> Realtek rtlwifi family of devices ===> CONFIG_RTL_CARDS=y
-
 
 Device Drivers
 [*] Staging drivers ===> CONFIG_STAGING
@@ -137,17 +133,32 @@ Device Drivers -> I2C support -> I2C Hardware Bus support
 
 Device Drivers -> Character devices -> Serial drivers
 <*> Xilinx uartlite serial port support ===> CONFIG_SERIAL_UARTLITE
+[*]   Support for console on Xilinx uartlite serial port ===>CONFIG_SERIAL_UARTLITE_CONSOLE
 
-Device Drivers -> Multimedia support ===> CONFIG_MEDIA_USB_SUPPORT=y
-[*] Media USB Adapters
+Device Drivers -> Multimedia support
+[*] Media USB Adapters ===> CONFIG_MEDIA_USB_SUPPORT=y
 
 Device Drivers -> Multimedia support -> Media USB Adapter
 <*> USB Video Class (UVC) ===> CONFIG_USB_VIDEO_CLASS=y
 [*] UVC input events device support (NEW) ===> CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
 
+<option 2>
+$ cp ../my_zynq_defconfig arch/arm/configs
+$ make ARCH=arm my_zynq_defconfig
+
 
 $ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
 $ cp arch/arm/boot/uImage ../..
+
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc) modules
+
+$ mkdir ../modules
+$ make  ARCH=arm INSTALL_MOD_PATH=../modules modules_install
+$ cd ..
+$ rm modules/lib/modules/4.6.0-xilinx/{build,source}
+$ tar cvzf modules.tar.gz modules/*
+$ rm -fr modules
+$ mv modules.tar.gz ..
 
 ### Boot.bin build
 
@@ -184,10 +195,13 @@ netmask 255.255.255.0
 # halt
 <<< console logout
 
-$ scp wlan0 wpa_supplicant.conf hokim@192.168.10.10:.
+s scp modules.tar.gz hokim@192.168.10.10:.
 
 >>> ssh login
 $ ssh hokim@192.168.10.10
+
+$ sudo tar xvzf modules.tar.gz --strip-components=1 --no-same-owner -C /
+$ rm modules.tar.gz
 
 $ sudo vi /etc/hostname
 -localhost.localdomain

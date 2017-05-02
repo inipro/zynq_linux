@@ -1,0 +1,12 @@
+$ wget https://root.cern.ch/download/cling/cling_2017-04-30_sources.tar.bz2
+$ mkdir cling_2017-04-30
+$ cd cling_2017-04-30
+$ tar xvjf cling_2017-04-30_sources.tar.bz2
+$ mkdir build
+$ cd build
+$ cmake ../src -DCMAKE_TOOLCHAIN_FILE=$HOME/work/arm-linux-gnueabihf.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../install -DLLVM_DEFAULT_TARGET_TRIPLE=arm-linux-gnueabihf -DLLVM_HOST_TRIPLE=arm--linux-gnueabihf -DLLVM_TARGET_ARCH=ARM -DLLVM_TARGETS_TO_BUILD=ARM 
+$ cpack
+$ scp LLVM-3.9.0svn-Linux.tar.gz 192.168.10.10:.
+$ ssh 192.168.10.10
+
+$ sudo tar xvzf LLVM-3.9.0svn-Linux.tar.gz --no-same-owner --strip-components=1 -C /usr/local
