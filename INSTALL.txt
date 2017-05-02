@@ -55,7 +55,7 @@ dtb-$(CONFIG_ARCH_ZYNQ) += zynq-zc702.dtb \
 +   zynq-zyboc.dtb
 
 $ make ARCH=arm zynq_zyboc_defconfig
-$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" all
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" all
 $ cp u-boot ~/work/embedded_linux/vivado/u-boot.elf
 
 ### Device Tree compile
@@ -147,10 +147,10 @@ $ cp ../my_zynq_defconfig arch/arm/configs
 $ make ARCH=arm my_zynq_defconfig
 
 
-$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc)  UIMAGE_LOADADDR=0x8000 uImage
 $ cp arch/arm/boot/uImage ../..
 
-$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc) modules
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CFLAGS="-O2 -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard" -j $(nproc) modules
 
 $ mkdir ../modules
 $ make  ARCH=arm INSTALL_MOD_PATH=../modules modules_install
