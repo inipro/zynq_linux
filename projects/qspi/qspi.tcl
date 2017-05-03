@@ -19,16 +19,10 @@ apply_bd_automation -rule xilinx.com:bd_rule:processing_system7 -config {
 	make_external {FIXED_IO, DDR}
 } [get_bd_cells ps_0]
 
-create_bd_intf_port -mode Master -vlnv xilinx.com:interface:iic_rtl:1.0 IIC_0
-
-connect_bd_intf_net [get_bd_intf_pins ps_0/IIC_0] [get_bd_intf_ports IIC_0]
-
 generate_target all [get_files $bd_path/system.bd]
 make_wrapper -files [get_files $bd_path/system.bd] -top
 
 add_files -norecurse $bd_path/hdl/system_wrapper.v
-
-add_files -norecurse -fileset constrs_1 zybo_qspi.xdc
 
 set_property verilog_define {TOOL_VIVADO} [current_fileset]
 
