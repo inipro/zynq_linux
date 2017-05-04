@@ -192,6 +192,10 @@ iface eth0 inet static
 address 192.168.10.10
 netmask 255.255.255.0
 
+# cd /etc
+# rm resolv.conf
+# ln -s ../run/resolvconf/resolv.conf resolv.conf
+
 # halt
 <<< console logout
 
