@@ -192,10 +192,6 @@ iface eth0 inet static
 address 192.168.10.10
 netmask 255.255.255.0
 
-# cd /etc
-# rm resolv.conf
-# ln -s ../run/resolvconf/resolv.conf resolv.conf
-
 # halt
 <<< console logout
 
@@ -223,15 +219,19 @@ ff00::0         ip6-mcastprefix
 ff02::1         ip6-allnodes
 ff02::2         ip6-allrouters
 
-$ ls /sys/class/net
+$ lsusb
 
-enx74da38422193  eth0  lo
+Bus 001 Device 002: ID 0bda:8179 Realtek Semiconductor Corp. RTL8188EUS 802.11n Wireless Network Adapter
 
-$ sudo vi /etc/network/interfaces.d/enx74da38422193
+$ sudo vi /etc/udev/rules.d/10-network.rules
 
-allow-hotplug enx74da38422193
-iface enx74da38422193 inet dhcp
-        pre-up wpa_supplicant -B -D wext -i enx74da38422193 -c /etc/wpa_supplicant.conf
+ACTION=="add", SUBSYSTEM=="net", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="8179", NAME="wlan0"
+
+$ sudo vi /etc/network/interfaces.d/wlan0
+
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+        pre-up wpa_supplicant -B -D wext -i wlan0 -c /etc/wpa_supplicant.conf
         post-down killall -q wpa_supplicant
         udhcpc_opts -t7 -T3
 
@@ -270,14 +270,12 @@ $ mkdir root
 $ sudo mount -o rw,loop,offset=$(echo '249856*512'|bc) -t auto img/ubuntu-core_armhf_16.04.img root
 
 $ sudo -s
-# cp /etc/resolv.conf root/etc/
 # cp /usr/bin/qemu-arm-static root/usr/bin/
 
 # chroot root
 # apt-get install lubuntu-desktop
 # exit
 
-# rm root/etc/resolv.conf
 # rm root/usr/bin/qemu-arm-static
 # umount root
 # exit
@@ -291,13 +289,13 @@ $ sudo -s
 # echo -e "d\n2\nw" | fdisk /dev/mmcblk0
 # parted -s /dev/mmcblk0 mkpart primary ext4 128M 100%
 # halt
-<<< ssh logout
 
 $ sudo resize2fs /dev/mmcblk0p2
+<<< ssh logout
 
 ### Make kernel module
-$ cd ~/work/embedded_linux/kernel/linux-xlnx-xilinx-v2016.3
-$ scp Module.symvers hokim@192.168.10.10
+$ cd ~/work/embedded_linux
+$ scp Module.symvers 192.168.10.10:.
 
 >> ssh login
 $ ssh hokim@192.168.10.10
@@ -307,27 +305,39 @@ $ cd linux-xlnx-xilinx-v2016.3
 $ zcat /proc/config.gz > .config
 $ make oldconfig
 $ make modules_prepare
+$ mv ../Module.symvers .
+$ cd /lib/modules/$(uname -r)
+$ sudo ln -s /home/hokim/linux-xlnx-xilinx-v2016.4 build
+$ cd ~
 $ vi ~/.bashrc
 
 + export KERNELDIR=$HOME/linux-xlnx-xilinx-v2016.3
 
-$ cp ../Module.symvers
-$ mkdir ~/modules
+$ mkdir -p ~/modules/rpmsg_user_dev_driver
 << ssh logout
 
 $ cd ~/work/embedded_linux/kernel/drivers
-$ scp -r rtl8192cu hokim@192.168.10.10:./modules
+$ scp  rpmsg_user_dev_driver.c hokim@192.168.10.10:./modules/rpmsg_user_dev_driver
 
 >> ssh login
-$ cd modules/rtl8192cu
+$ cd modules/rpmsg_user_dev_driver
 $ vi Makefile
-modules:
--	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
-+   $(MAKE) -C $(KERNELDIR) M=$(shell pwd)  modules
 
+ifneq ($(KERNELRELEASE),)
+	obj-m := rpmsg_user_dev_driver.o
+else
+	KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+
+default:
+	$(MAKE) -C $(KERNELDIR) M=$$PWD modules
+
+install:
+	$(MAKE) -C $(KERNELDIR) M=$$PWD modules_install
+	/sbin/depmod -a $(shell uname -r)
+
+clean:
+	$(MAKE) -C $(KERNELDIR) M=$$PWD clean
+endif
 $ make
-$ sudo mkdir -p /lib/modules/$(uname -r)/drivers
-$ sudo cp 8192cu.ko /lib/modules/$(uname -r)/drivers
-$ sudo depmod -a
-$ sudo reboot
+$ sudo make install
 

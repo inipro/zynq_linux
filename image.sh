@@ -39,20 +39,28 @@ cp /usr/bin/qemu-arm-static $ROOT_DIR/usr/bin/
 chroot $ROOT_DIR << EOF_CHROOT
 sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial universe.*/deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial universe/' /etc/apt/sources.list
 sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe.*/deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe/' /etc/apt/sources.list
-apt-get update
-apt-get -y upgrade
-DEBIAN_FRONTEND=noninteractive apt-get -y install lsb-release bc vim nano sudo openssh-server udev usbutils u-boot-tools device-tree-compiler kmod net-tools resolvconf wpasupplicant parted rfkill lshw wireless-tools gcc g++ cmake python git i2c-tools iputils-ping lxterminal leafpad linux-firmware
+apt update
+apt -y upgrade
+DEBIAN_FRONTEND=noninteractive apt -y install lsb-release bc vim nano sudo openssh-server udev usbutils u-boot-tools device-tree-compiler kmod net-tools resolvconf wpasupplicant parted rfkill lshw wireless-tools gcc g++ cmake python git i2c-tools iputils-ping lxterminal leafpad linux-firmware
 echo "Asia/Seoul" > /etc/timezone
 ln -fs /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 locale-gen "en_US.UTF-8"
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+apt clean
 EOF_CHROOT
 
-rm $ROOT_DIR/etc/resolv.conf
+#rm $ROOT_DIR/etc/resolv.conf
 rm $ROOT_DIR/usr/bin/qemu-arm-static
 
 mkdir -pv $ROOT_DIR/etc/systemd/system/serial-getty\@ttyPS0.service.d
 cat > $ROOT_DIR/etc/systemd/system/serial-getty\@ttyPS0.service.d/autologin.conf << EOF_CAT
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin root -s %I 115200,38400,9600 linux
+EOF_CAT
+
+mkdir -pv $ROOT_DIR/etc/systemd/system/serial-getty\@ttyUL0.service.d
+cat > $ROOT_DIR/etc/systemd/system/serial-getty\@ttyUL0.service.d/autologin.conf << EOF_CAT
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin root -s %I 115200,38400,9600 linux
