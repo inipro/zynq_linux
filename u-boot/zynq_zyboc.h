@@ -36,21 +36,24 @@
 	"ramdisk_size=0x5E0000\0"   \
     "bootenv=uEnv.txt\0" \
     "loadbootenv=load mmc 0 ${loadbootenv_addr} ${bootenv}\0" \
-    "importbootenv=echo Importing environment from SD ...; " \
+    "importbootenv=echo Importing environment from SD/EMMC ...; " \
         "env import -t ${loadbootenv_addr} $filesize\0" \
     "sd_uEnvtxt_existence_test=test -e mmc 0 /uEnv.txt\0" \
+    "emmc_uEnvtxt_existence_test=test -e mmc 1 /uEnv.txt\0" \
     "preboot=if test $modeboot = sdboot && env run sd_uEnvtxt_existence_test; " \
             "then if env run loadbootenv; " \
                 "then env run importbootenv; " \
             "fi; " \
         "fi; \0" \
-	"qspiboot=echo Copying Linux from QSPI flash to RAM... && " \
+	"qspiboot=if env run emmc_uEnvtxt_existence_test; " \
+		"then load mmc 1 ${loadbootenv_addr} ${bootenv} && env run importbootenv && run bootcmd;" \
+		"else echo Copying Linux from QSPI flash to RAM... && " \
 		"sf probe 0 0 0 && " \
 		"sf read ${kernel_load_address} 0x100000 ${kernel_size} && " \
 		"sf read ${devicetree_load_address} 0x600000 ${devicetree_size} && " \
 		"echo Copying ramdisk... && " \
 		"sf read ${ramdisk_load_address} 0x620000 ${ramdisk_size} && " \
-		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0"
+		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}; fi; \0"
 
 #include <configs/zynq-common.h>
 
