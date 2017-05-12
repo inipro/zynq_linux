@@ -94,7 +94,8 @@ echo "rcS Complete"
 EOF_CAT
 chmod 755 etc/init.d/rcS
 mkdir lib
-cp -r /usr/arm-linux-gnueabihf/lib/* lib
+#cp -r /usr/arm-linux-gnueabihf/lib/* lib
+cp -r /usr/arm-linux-gnueabihf/lib/{libc.so.6,libm.so.6,ld-linux-armhf.so.3} lib
 cat > root/.profile << EOF_CAT
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 EOF_CAT
