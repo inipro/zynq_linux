@@ -70,12 +70,12 @@ mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
  
 #echo "++ Configuring MAC address"
-#ifconfig eth0 192.168.10.10 up
-ifconfig eth0 up
+ifconfig eth0 192.168.10.10 up
+#ifconfig eth0 up
 ifconfig lo up
  
-echo "++ Starting DHCP daemon"
-udhcpc -s /etc/dhcp/update.sh
+#echo "++ Starting DHCP daemon"
+#udhcpc -s /etc/dhcp/update.sh
  
 echo "++ Starting telnet daemon"
 telnetd -l /bin/sh
@@ -95,12 +95,15 @@ chmod 755 etc/init.d/rcS
 mkdir -p etc/dhcp
 cp ../busybox/examples/udhcp/simple.script etc/dhcp/update.sh
 mkdir lib
-#cp -r /usr/arm-linux-gnueabihf/lib/* lib
-cp /usr/arm-linux-gnueabihf/lib/{libc.so.6,libm.so.6,ld-linux-armhf.so.3,libutil.so.1,libcrypt.so.1,libnsl.so.1,libnss_compat.so.2} lib
+SYSROOT=$(arm-linux-gnueabihf-gcc -print-sysroot)
+#cp -r $SYSROOT/lib/* lib
+cp $SYSROOT/lib/{libc.so.6,libm.so.6,ld-linux-armhf.so.3,libutil.so.1,libcrypt.so.1,libnsl.so.1,libnss_compat.so.2,libgcc_s.so.1} lib
+cd lib
+ln -s ld-linux-armhf.so.3 ld-linux.so.3
 cat > root/.profile << EOF_CAT
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 EOF_CAT
-cd ..
+cd ../..
 cp /usr/bin/qemu-arm-static _rootfs/usr/bin
 mount --bind /dev _rootfs/dev
 chroot _rootfs /bin/ash << EOF_CHROOT
@@ -112,7 +115,8 @@ echo root:1234 | chpasswd
 EOF_CHROOT
 umount _rootfs/dev
 rm _rootfs/usr/bin/qemu-arm-static
-dd if=/dev/zero of=ramdisk.img bs=1024 count=16384
+#dd if=/dev/zero of=ramdisk.img bs=1024 count=16384
+dd if=/dev/zero of=ramdisk.img bs=1024 count=32768
 mke2fs -F ramdisk.img -L "ramdisk" -b 1024 -m 0
 tune2fs ramdisk.img -i 0
 chmod 777 ramdisk.img

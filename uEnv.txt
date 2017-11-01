@@ -8,5 +8,7 @@ devicetree_load_address=0x2000000
 
 #fdt_high=0x1e000000
 
+#bootargs=console=ttyPS0,115200 root=/dev/mmcblk0p2 ro rootfstype=ext4 earlyprintk rootwait ramdisk_size=32768
+
 bootcmd=mmcinfo && fatload mmc 0 ${kernel_load_address} ${kernel_image} && fatload mmc 0 ${devicetree_load_address} ${devicetree_image} && bootm ${kernel_load_address} - ${devicetree_load_address}
 
