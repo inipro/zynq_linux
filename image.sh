@@ -1,7 +1,8 @@
 mkdir -p dl
 
 UBUNTU_URL=http://cdimage.ubuntu.com/ubuntu-base/releases/16.04/release
-UBUNTU=ubuntu-base-16.04-core-armhf.tar.gz
+UBUNTU=ubuntu-base-16.04.3-base-armhf.tar.gz
+
 if [ ! -f dl/$UBUNTU ]; then
 	wget $UBUNTU_URL/$UBUNTU -O dl/$UBUNTU
 fi
@@ -37,8 +38,6 @@ EOF_CAT
 cp /etc/resolv.conf         $ROOT_DIR/etc/
 cp /usr/bin/qemu-arm-static $ROOT_DIR/usr/bin/
 chroot $ROOT_DIR << EOF_CHROOT
-sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial universe.*/deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial universe/' /etc/apt/sources.list
-sed -i 's/^# deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe.*/deb http:\/\/ports\.ubuntu\.com\/ubuntu-ports\/ xenial-updates universe/' /etc/apt/sources.list
 apt update
 apt -y upgrade
 DEBIAN_FRONTEND=noninteractive apt -y install lsb-release bc vim nano sudo openssh-server udev usbutils u-boot-tools device-tree-compiler kmod net-tools resolvconf wpasupplicant parted rfkill lshw wireless-tools gcc g++ cmake python git i2c-tools iputils-ping lxterminal leafpad linux-firmware
